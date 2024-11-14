@@ -15,6 +15,7 @@ import IImageElement from '../elements/ImageElement';
 import SVGShapeElement from '../elements/svgElements/SVGShapeElement';
 import SVGTextLottieElement from '../elements/svgElements/SVGTextElement'; // eslint-disable-line import/no-cycle
 import ISolidElement from '../elements/SolidElement';
+import IVideoElement from '../elements/VideoElement';
 import NullElement from '../elements/NullElement';
 
 function SVGRendererBase() {
@@ -40,6 +41,10 @@ SVGRendererBase.prototype.createImage = function (data) {
 
 SVGRendererBase.prototype.createSolid = function (data) {
   return new ISolidElement(data, this.globalData, this);
+};
+
+SVGRendererBase.prototype.createVideo = function (data) {
+  return new IVideoElement(data, this.globalData, this);
 };
 
 SVGRendererBase.prototype.configAnimation = function (animData) {

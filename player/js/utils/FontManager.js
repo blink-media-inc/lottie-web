@@ -187,7 +187,11 @@ const FontManager = (function () {
         fontArr[i].loaded = true;
         _pendingFonts -= 1;
       } else if (fontArr[i].fOrigin === 'p' || fontArr[i].origin === 3) {
-        loadedSelector = document.querySelectorAll('style[f-forigin="p"][f-family="' + fontArr[i].fFamily + '"], style[f-origin="3"][f-family="' + fontArr[i].fFamily + '"]');
+        var selFnt = 'style[f-forigin="p"][f-family="' + fontArr[i].fFamily + '"], style[f-origin="3"][f-family="' + fontArr[i].fFamily + '"]';
+        if (fontArr[i].fWeight) {
+          selFnt += '[f-weight="' + fontArr[i].fWeight + '"]';
+        }
+        loadedSelector = document.querySelectorAll(selFnt);
 
         if (loadedSelector.length > 0) {
           shouldLoadFont = false;
@@ -198,8 +202,11 @@ const FontManager = (function () {
           s.setAttribute('f-forigin', fontArr[i].fOrigin);
           s.setAttribute('f-origin', fontArr[i].origin);
           s.setAttribute('f-family', fontArr[i].fFamily);
+          if (fontArr[i].fWeight) {
+            s.setAttribute('f-weight', fontArr[i].fWeight);
+          }
           s.type = 'text/css';
-          s.innerText = '@font-face {font-family: ' + fontArr[i].fFamily + "; font-style: normal; src: url('" + fontArr[i].fPath + "');}";
+          s.innerText = '@font-face {font-family: ' + fontArr[i].fFamily + '; font-style: normal; ' + (fontArr[i].fWeight ? 'font-weight: ' + fontArr[i].fWeight + ';' : '') + ' src: url(\'' + fontArr[i].fPath + '\');}';
           defs.appendChild(s);
         }
       } else if (fontArr[i].fOrigin === 'g' || fontArr[i].origin === 1) {

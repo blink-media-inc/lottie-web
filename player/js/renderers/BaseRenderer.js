@@ -23,6 +23,8 @@ BaseRenderer.prototype.checkLayers = function (num) {
 
 BaseRenderer.prototype.createItem = function (layer) {
   switch (layer.ty) {
+    case 9:
+      return this.createVideo(layer);
     case 2:
       return this.createImage(layer);
     case 0:
