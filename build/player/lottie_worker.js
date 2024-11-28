@@ -1418,7 +1418,7 @@
     }();
     function imageLoaded() {
       this.loadedAssets += 1;
-      if (this.loadedAssets === this.totalImages && this.loadedFootagesCount === this.totalFootages) {
+      if (this.loadedAssets === this.totalImages && this.loadedFootagesCount === this.totalFootages && this.loadedVideosMetadata <= this.totalVideos) {
         if (this.imagesLoadedCb) {
           this.imagesLoadedCb(null);
         }
@@ -1426,7 +1426,15 @@
     }
     function footageLoaded() {
       this.loadedFootagesCount += 1;
-      if (this.loadedAssets === this.totalImages && this.loadedFootagesCount === this.totalFootages) {
+      if (this.loadedAssets === this.totalImages && this.loadedFootagesCount === this.totalFootages && this.loadedVideosMetadata <= this.totalVideos) {
+        if (this.imagesLoadedCb) {
+          this.imagesLoadedCb(null);
+        }
+      }
+    }
+    function videoLoaded() {
+      this.loadedVideosMetadata += 1;
+      if (this.loadedAssets === this.totalImages && this.loadedFootagesCount === this.totalFootages && this.loadedVideosMetadata <= this.totalVideos) {
         if (this.imagesLoadedCb) {
           this.imagesLoadedCb(null);
         }
@@ -1459,6 +1467,32 @@
         }
         _count += 1;
       }.bind(this), 50);
+    }
+    function createVideoData(assetData) {
+      var path = getAssetsPath(assetData, this.assetsPath, this.path);
+      var fO = createNS('foreignObject');
+      fO.setAttribute('id', assetData.id);
+      fO.setAttribute('x', '0');
+      fO.setAttribute('y', '0');
+      fO.setAttribute('width', assetData.w);
+      fO.setAttribute('height', assetData.h);
+      fO.innerHTML = '<video xmlns="http://www.w3.org/1999/xhtml" width="' + assetData.w + '" height="' + assetData.h + '" loop="true" muted="true" src="' + path + '"></video>';
+      var ve = fO.children[0];
+      var self = this;
+      ve.onloadedmetadata = function () {
+        this._videoDuration = this.duration;
+        self._videoLoaded();
+      };
+      if (this._elementHelper.append) {
+        this._elementHelper.append(fO);
+      } else {
+        this._elementHelper.appendChild(fO);
+      }
+      var ob = {
+        fO: fO,
+        assetData: assetData
+      };
+      return ob;
     }
     function createImageData(assetData) {
       var path = getAssetsPath(assetData, this.assetsPath, this.path);
@@ -1521,8 +1555,13 @@
       for (i = 0; i < len; i += 1) {
         if (!assets[i].layers) {
           if (!assets[i].t || assets[i].t === 'seq') {
-            this.totalImages += 1;
-            this.images.push(this._createImageData(assets[i]));
+            if (assets[i].p && assets[i].p.startsWith('data:video')) {
+              this.totalVideos += 1;
+              this.videos.push(this.createVideoData(assets[i]));
+            } else {
+              this.totalImages += 1;
+              this.images.push(this._createImageData(assets[i]));
+            }
           } else if (assets[i].t === 3) {
             this.totalFootages += 1;
             this.images.push(this.createFootageData(assets[i]));
@@ -1550,12 +1589,16 @@
     function destroy() {
       this.imagesLoadedCb = null;
       this.images.length = 0;
+      this.videos.length = 0;
     }
     function loadedImages() {
       return this.totalImages === this.loadedAssets;
     }
     function loadedFootages() {
       return this.totalFootages === this.loadedFootagesCount;
+    }
+    function loadedVideos() {
+      return this.totalVideos <= this.loadedVideosMetadata;
     }
     function setCacheType(type, elementHelper) {
       if (type === 'svg') {
@@ -1568,6 +1611,7 @@
     function ImagePreloaderFactory() {
       this._imageLoaded = imageLoaded.bind(this);
       this._footageLoaded = footageLoaded.bind(this);
+      this._videoLoaded = videoLoaded.bind(this);
       this.testImageLoaded = testImageLoaded.bind(this);
       this.createFootageData = createFootageData.bind(this);
       this.assetsPath = '';
@@ -1578,6 +1622,9 @@
       this.loadedFootagesCount = 0;
       this.imagesLoadedCb = null;
       this.images = [];
+      this.totalVideos = 0;
+      this.loadedVideosMetadata = 0;
+      this.videos = [];
     }
     ImagePreloaderFactory.prototype = {
       loadAssets: loadAssets,
@@ -1589,8 +1636,10 @@
       getAsset: getAsset,
       createImgData: createImgData,
       createImageData: createImageData,
+      createVideoData: createVideoData,
       imageLoaded: imageLoaded,
       footageLoaded: footageLoaded,
+      loadedVideos: loadedVideos,
       setCacheType: setCacheType
     };
     return ImagePreloaderFactory;
@@ -1981,7 +2030,7 @@
     }
   };
   AnimationItem.prototype.checkLoaded = function () {
-    if (!this.isLoaded && this.renderer.globalData.fontManager.isLoaded && (this.imagePreloader.loadedImages() || this.renderer.rendererType !== 'canvas') && this.imagePreloader.loadedFootages()) {
+    if (!this.isLoaded && this.renderer.globalData.fontManager.isLoaded && (this.imagePreloader.loadedImages() || this.renderer.rendererType !== 'canvas') && this.imagePreloader.loadedFootages() && this.imagePreloader.loadedVideos()) {
       this.isLoaded = true;
       var expressionsPlugin = getExpressionsPlugin();
       if (expressionsPlugin) {
@@ -2052,7 +2101,9 @@
       this.trigger('_pause');
       this._idle = true;
       this.trigger('_idle');
+      /* IFTRUE_INCLUDE_AUDIO */
       this.audioController.pause();
+      /* FITRUE_INCLUDE_AUDIO */
     }
   };
   AnimationItem.prototype.togglePause = function (name) {
@@ -10833,9 +10884,22 @@
   extendPrototype([BaseElement, TransformElement, SVGBaseElement, HierarchyElement, FrameElement, RenderableDOMElement], IVideoElement);
   IVideoElement.prototype.createContent = function () {
     var assetPath = this.globalData.getAssetsPath(this.assetData);
-    this.layerElement.innerHTML = '<foreignObject x="0" y="0" width="' + this.assetData.w + '" height="' + this.assetData.h + '"><video xmlns="http://www.w3.org/1999/xhtml" width="' + this.assetData.w + '" height="' + this.assetData.h + '" loop="true" muted="true" src="' + assetPath + '"></video></foreignObject>';
-    this.videoElement = this.layerElement.children[0].children[0];
-    this.videoElement._videoDuration = -1;
+    var preloadedVideos = this.globalData.defs.getElementsByTagName('foreignObject');
+    this.videoElement = null;
+    for (var i = 0; i < preloadedVideos.length; i += 1) {
+      if (preloadedVideos[i].getAttribute('id') === this.assetData.id) {
+        this.videoElement = preloadedVideos[i].children[0];
+        this.layerElement.appendChild(preloadedVideos[i]);
+        break;
+      }
+    }
+    var alreadyCreated = true;
+    if (!this.videoElement) {
+      this.layerElement.innerHTML = '<foreignObject x="0" y="0" width="' + this.assetData.w + '" height="' + this.assetData.h + '"><video xmlns="http://www.w3.org/1999/xhtml" width="' + this.assetData.w + '" height="' + this.assetData.h + '" loop="true" muted="true" src="' + assetPath + '"></video></foreignObject>';
+      this.videoElement = this.layerElement.children[0].children[0];
+      this.videoElement._videoDuration = -1;
+      alreadyCreated = false;
+    }
     this.animationItem = null;
     var comp = this.comp;
     while (!comp.animationItem && comp.comp) {
@@ -10850,26 +10914,33 @@
     };
     this.animationItemPlayListener = function () {
       if (self.videoElement.paused) {
+        self.videoElement.currentTime = (self.globalData.frameNum - self.data.ip) / self.globalData.frameRate;
         self.videoElement.play();
       }
     };
     this.animationItem.addEventListener('_pause', this.animationItemPauseListener);
     this.animationItem.addEventListener('_play', this.animationItemPlayListener);
-    this.videoElement.onloadedmetadata = function () {
-      this._videoDuration = this.duration;
-      if (!self.animationItem.isPaused) {
-        this.play();
+    if (alreadyCreated) {
+      if (!this.animationItem.isPaused) {
+        this.videoElement.currentTime = (this.globalData.frameNum - this.data.ip) / this.globalData.frameRate;
+        this.videoElement.play();
       }
-    };
-  };
-  IVideoElement.prototype.show = function () {
-    RenderableDOMElement.prototype.show.call(this);
-    this._videoStartFrame = this.globalData.frameNum;
+    } else {
+      this.videoElement.onloadedmetadata = function () {
+        this._videoDuration = this.duration;
+        if (!self.animationItem.isPaused) {
+          this.currentTime = (self.globalData.frameNum - self.data.ip) / self.globalData.frameRate;
+          this.play();
+        }
+      };
+    }
   };
   IVideoElement.prototype.prepareFrame = function (num) {
     RenderableDOMElement.prototype.prepareFrame.call(this, num);
     if (this.animationItem.isPaused && this.videoElement._videoDuration > -1) {
-      this.videoElement.currentTime = (this.globalData.frameNum - this._videoStartFrame) / this.globalData.frameRate;
+      this.videoElement.currentTime = (this.globalData.frameNum - this.data.ip) / this.globalData.frameRate;
+    } else if (Math.abs((this.globalData.frameNum - this.data.ip) / this.globalData.frameRate - this.videoElement.currentTime) > 1) {
+      this.videoElement.currentTime = (this.globalData.frameNum - this.data.ip) / this.globalData.frameRate;
     }
   };
   IVideoElement.prototype.renderFrame = function () {

@@ -503,6 +503,7 @@ const dataManager = (function () {
           _workerSelf.dataManager = dataFunctionManager();
         }
 
+        /* IFTRUE_INCLUDE_ADVANCED */
         if (!_workerSelf.assetLoader) {
           _workerSelf.assetLoader = (function () {
             function formatResponse(xhr) {
@@ -561,6 +562,7 @@ const dataManager = (function () {
             };
           }());
         }
+        /* FITRUE_INCLUDE_ADVANCED */
 
         if (e.data.type === 'loadAnimation') {
           _workerSelf.assetLoader.load(
@@ -634,6 +636,7 @@ const dataManager = (function () {
     return id;
   }
 
+  /* IFTRUE_INCLUDE_ADVANCED */
   function loadAnimation(path, onComplete, onError) {
     setupWorker();
     var processId = createProcess(onComplete, onError);
@@ -655,6 +658,7 @@ const dataManager = (function () {
       id: processId,
     });
   }
+  /* FITRUE_INCLUDE_ADVANCED */
 
   function completeAnimation(anim, onComplete, onError) {
     setupWorker();
@@ -667,8 +671,10 @@ const dataManager = (function () {
   }
 
   return {
+    /* IFTRUE_INCLUDE_ADVANCED */
     loadAnimation: loadAnimation,
     loadData: loadData,
+    /* FITRUE_INCLUDE_ADVANCED */
     completeAnimation: completeAnimation,
   };
 }());

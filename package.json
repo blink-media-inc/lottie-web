@@ -10,6 +10,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "npx eslint ./player/js/**/* && rollup -c && node tasks/build_worker",
+    "build_html": "npx eslint ./player/js/**/* && rollup --config rollup_html.config.js",
     "build_test": "node tasks/build.js",
     "lint": "npx eslint ./player/js/**/*",
     "lint:fix": "npx eslint ./player/js/**/* --fix",
@@ -40,6 +41,7 @@
     "pngjs": "^7.0.0",
     "puppeteer": "^20.5.0",
     "rollup": "^2.61.0",
+    "rollup-plugin-ifdef": "^1.1.1",
     "rollup-plugin-terser": "^7.0.2",
     "uglify-js": "^3.4.9",
     "watch": "^1.0.2"

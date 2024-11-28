@@ -1,5 +1,6 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
+import ifdef from 'rollup-plugin-ifdef';
 import babel from '@rollup/plugin-babel';
 import {version} from './package.json'
 
@@ -129,6 +130,11 @@ const builds = [
 ];
 
 const plugins = [
+  ifdef({
+  	INCLUDE_SLOTS: true,
+  	INCLUDE_AUDIO: true,
+  	INCLUDE_ADVANCED: true,
+  }),
   nodeResolve(),
   babel({
     babelHelpers: 'runtime',

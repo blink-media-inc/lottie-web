@@ -1,7 +1,11 @@
 import FontManager from '../utils/FontManager';
+/* IFTRUE_INCLUDE_SLOTS */
 import slotFactory from '../utils/SlotManager';
+/* FITRUE_INCLUDE_SLOTS */
 import FootageElement from '../elements/FootageElement';
+/* IFTRUE_INCLUDE_AUDIO */
 import AudioElement from '../elements/AudioElement';
+/* FITRUE_INCLUDE_AUDIO */
 
 function BaseRenderer() {}
 BaseRenderer.prototype.checkLayers = function (num) {
@@ -37,8 +41,10 @@ BaseRenderer.prototype.createItem = function (layer) {
       return this.createShape(layer);
     case 5:
       return this.createText(layer);
+    /* IFTRUE_INCLUDE_AUDIO */
     case 6:
       return this.createAudio(layer);
+      /* FITRUE_INCLUDE_AUDIO */
     case 13:
       return this.createCamera(layer);
     case 15:
@@ -52,9 +58,11 @@ BaseRenderer.prototype.createCamera = function () {
   throw new Error('You\'re using a 3d camera. Try the html renderer.');
 };
 
+/* IFTRUE_INCLUDE_AUDIO */
 BaseRenderer.prototype.createAudio = function (data) {
   return new AudioElement(data, this.globalData, this);
 };
+/* FITRUE_INCLUDE_AUDIO */
 
 BaseRenderer.prototype.createFootage = function (data) {
   return new FootageElement(data, this.globalData, this);
@@ -170,13 +178,17 @@ BaseRenderer.prototype.getElementByPath = function (path) {
 
 BaseRenderer.prototype.setupGlobalData = function (animData, fontsContainer) {
   this.globalData.fontManager = new FontManager();
+  /* IFTRUE_INCLUDE_SLOTS */
   this.globalData.slotManager = slotFactory(animData);
+  /* FITRUE_INCLUDE_SLOTS */
   this.globalData.fontManager.addChars(animData.chars);
   this.globalData.fontManager.addFonts(animData.fonts, fontsContainer);
   this.globalData.getAssetData = this.animationItem.getAssetData.bind(this.animationItem);
   this.globalData.getAssetsPath = this.animationItem.getAssetsPath.bind(this.animationItem);
   this.globalData.imageLoader = this.animationItem.imagePreloader;
+  /* IFTRUE_INCLUDE_AUDIO */
   this.globalData.audioController = this.animationItem.audioController;
+  /* FITRUE_INCLUDE_AUDIO */
   this.globalData.frameId = 0;
   this.globalData.frameRate = animData.fr;
   this.globalData.nm = animData.nm;

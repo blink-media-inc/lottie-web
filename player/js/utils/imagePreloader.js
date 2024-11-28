@@ -16,7 +16,7 @@ const ImagePreloader = (function () {
 
   function imageLoaded() {
     this.loadedAssets += 1;
-    if (this.loadedAssets === this.totalImages && this.loadedFootagesCount === this.totalFootages) {
+    if (this.loadedAssets === this.totalImages && this.loadedFootagesCount === this.totalFootages && this.loadedVideosMetadata <= this.totalVideos) {
       if (this.imagesLoadedCb) {
         this.imagesLoadedCb(null);
       }
@@ -24,7 +24,15 @@ const ImagePreloader = (function () {
   }
   function footageLoaded() {
     this.loadedFootagesCount += 1;
-    if (this.loadedAssets === this.totalImages && this.loadedFootagesCount === this.totalFootages) {
+    if (this.loadedAssets === this.totalImages && this.loadedFootagesCount === this.totalFootages && this.loadedVideosMetadata <= this.totalVideos) {
+      if (this.imagesLoadedCb) {
+        this.imagesLoadedCb(null);
+      }
+    }
+  }
+  function videoLoaded() {
+    this.loadedVideosMetadata += 1;
+    if (this.loadedAssets === this.totalImages && this.loadedFootagesCount === this.totalFootages && this.loadedVideosMetadata <= this.totalVideos) {
       if (this.imagesLoadedCb) {
         this.imagesLoadedCb(null);
       }
@@ -59,6 +67,33 @@ const ImagePreloader = (function () {
       }
       _count += 1;
     }.bind(this), 50);
+  }
+
+  function createVideoData(assetData) {
+    var path = getAssetsPath(assetData, this.assetsPath, this.path);
+    var fO = createNS('foreignObject');
+    fO.setAttribute('id', assetData.id);
+    fO.setAttribute('x', '0');
+    fO.setAttribute('y', '0');
+    fO.setAttribute('width', assetData.w);
+    fO.setAttribute('height', assetData.h);
+    fO.innerHTML = '<video xmlns="http://www.w3.org/1999/xhtml" width="' + assetData.w + '" height="' + assetData.h + '" loop="true" muted="true" src="' + path + '"></video>';
+    var ve = fO.children[0];
+    var self = this;
+    ve.onloadedmetadata = function () {
+      this._videoDuration = this.duration;
+      self._videoLoaded();
+    };
+    if (this._elementHelper.append) {
+      this._elementHelper.append(fO);
+    } else {
+      this._elementHelper.appendChild(fO);
+    }
+    var ob = {
+      fO: fO,
+      assetData: assetData,
+    };
+    return ob;
   }
 
   function createImageData(assetData) {
@@ -125,8 +160,13 @@ const ImagePreloader = (function () {
     for (i = 0; i < len; i += 1) {
       if (!assets[i].layers) {
         if (!assets[i].t || assets[i].t === 'seq') {
-          this.totalImages += 1;
-          this.images.push(this._createImageData(assets[i]));
+          if (assets[i].p && assets[i].p.startsWith('data:video')) {
+            this.totalVideos += 1;
+            this.videos.push(this.createVideoData(assets[i]));
+          } else {
+            this.totalImages += 1;
+            this.images.push(this._createImageData(assets[i]));
+          }
         } else if (assets[i].t === 3) {
           this.totalFootages += 1;
           this.images.push(this.createFootageData(assets[i]));
@@ -158,6 +198,7 @@ const ImagePreloader = (function () {
   function destroy() {
     this.imagesLoadedCb = null;
     this.images.length = 0;
+    this.videos.length = 0;
   }
 
   function loadedImages() {
@@ -166,6 +207,10 @@ const ImagePreloader = (function () {
 
   function loadedFootages() {
     return this.totalFootages === this.loadedFootagesCount;
+  }
+
+  function loadedVideos() {
+    return this.totalVideos <= this.loadedVideosMetadata;
   }
 
   function setCacheType(type, elementHelper) {
@@ -180,6 +225,7 @@ const ImagePreloader = (function () {
   function ImagePreloaderFactory() {
     this._imageLoaded = imageLoaded.bind(this);
     this._footageLoaded = footageLoaded.bind(this);
+    this._videoLoaded = videoLoaded.bind(this);
     this.testImageLoaded = testImageLoaded.bind(this);
     this.createFootageData = createFootageData.bind(this);
     this.assetsPath = '';
@@ -190,6 +236,9 @@ const ImagePreloader = (function () {
     this.loadedFootagesCount = 0;
     this.imagesLoadedCb = null;
     this.images = [];
+    this.totalVideos = 0;
+    this.loadedVideosMetadata = 0;
+    this.videos = [];
   }
 
   ImagePreloaderFactory.prototype = {
@@ -202,8 +251,10 @@ const ImagePreloader = (function () {
     getAsset: getAsset,
     createImgData: createImgData,
     createImageData: createImageData,
+    createVideoData: createVideoData,
     imageLoaded: imageLoaded,
     footageLoaded: footageLoaded,
+    loadedVideos: loadedVideos,
     setCacheType: setCacheType,
   };
 

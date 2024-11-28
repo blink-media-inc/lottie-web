@@ -2,7 +2,10 @@ import {
   extendPrototype,
 } from '../utils/functionExtensions';
 
+/* IFTRUE_INCLUDE_AUDIO */
 import audioControllerFactory from '../utils/audio/AudioController';
+/* FITRUE_INCLUDE_AUDIO */
+
 import {
   getSubframeEnabled,
   BMEnterFrameEvent,
@@ -52,7 +55,9 @@ const AnimationItem = function () {
   this._completedLoop = false;
   this.projectInterface = ProjectInterface();
   this.imagePreloader = new ImagePreloader();
+  /* IFTRUE_INCLUDE_AUDIO */
   this.audioController = audioControllerFactory();
+  /* FITRUE_INCLUDE_AUDIO */
   this.markers = [];
   this.configAnimation = this.configAnimation.bind(this);
   this.onSetupError = this.onSetupError.bind(this);
@@ -93,9 +98,11 @@ AnimationItem.prototype.setParams = function (params) {
   this.autoloadSegments = Object.prototype.hasOwnProperty.call(params, 'autoloadSegments') ? params.autoloadSegments : true;
   this.assetsPath = params.assetsPath;
   this.initialSegment = params.initialSegment;
+  /* IFTRUE_INCLUDE_AUDIO */
   if (params.audioFactory) {
     this.audioController.setAudioFactory(params.audioFactory);
   }
+  /* FITRUE_INCLUDE_AUDIO */
   if (params.animationData) {
     this.setupAnimation(params.animationData);
   } else if (params.path) {
@@ -125,6 +132,7 @@ AnimationItem.prototype.setupAnimation = function (data) {
   );
 };
 
+/* IFTRUE_INCLUDE_ADVANCED */
 AnimationItem.prototype.setData = function (wrapper, animationData) {
   if (animationData) {
     if (typeof animationData !== 'object') {
@@ -203,6 +211,7 @@ AnimationItem.prototype.setData = function (wrapper, animationData) {
     this.setParams(params);
   }
 };
+/* FITRUE_INCLUDE_ADVANCED */
 
 AnimationItem.prototype.includeLayers = function (data) {
   if (data.op > this.animationData.op) {
@@ -314,9 +323,11 @@ AnimationItem.prototype.configAnimation = function (animData) {
     this.loadSegments();
     this.updaFrameModifier();
     this.waitForFontsLoaded();
+    /* IFTRUE_INCLUDE_AUDIO */
     if (this.isPaused) {
       this.audioController.pause();
     }
+    /* FITRUE_INCLUDE_AUDIO */
   } catch (error) {
     this.triggerConfigError(error);
   }
@@ -338,6 +349,7 @@ AnimationItem.prototype.checkLoaded = function () {
         && this.renderer.globalData.fontManager.isLoaded
         && (this.imagePreloader.loadedImages() || this.renderer.rendererType !== 'canvas')
         && (this.imagePreloader.loadedFootages())
+        && (this.imagePreloader.loadedVideos())
   ) {
     this.isLoaded = true;
     var expressionsPlugin = getExpressionsPlugin();
@@ -398,7 +410,9 @@ AnimationItem.prototype.play = function (name) {
   if (this.isPaused === true) {
     this.isPaused = false;
     this.trigger('_play');
+    /* IFTRUE_INCLUDE_AUDIO */
     this.audioController.resume();
+    /* FITRUE_INCLUDE_AUDIO */
     if (this._idle) {
       this._idle = false;
       this.trigger('_active');
@@ -406,6 +420,7 @@ AnimationItem.prototype.play = function (name) {
   }
 };
 
+/* IFTRUE_INCLUDE_ADVANCED */
 AnimationItem.prototype.pause = function (name) {
   if (name && this.name !== name) {
     return;
@@ -415,7 +430,9 @@ AnimationItem.prototype.pause = function (name) {
     this.trigger('_pause');
     this._idle = true;
     this.trigger('_idle');
+    /* IFTRUE_INCLUDE_AUDIO */
     this.audioController.pause();
+    /* FITRUE_INCLUDE_AUDIO */
   }
 };
 
@@ -440,6 +457,7 @@ AnimationItem.prototype.stop = function (name) {
   this.setCurrentRawFrameValue(0);
 };
 
+/* FITRUE_INCLUDE_ADVANCED */
 AnimationItem.prototype.getMarkerData = function (markerName) {
   var marker;
   for (var i = 0; i < this.markers.length; i += 1) {
@@ -450,6 +468,7 @@ AnimationItem.prototype.getMarkerData = function (markerName) {
   }
   return null;
 };
+/* IFTRUE_INCLUDE_ADVANCED */
 
 AnimationItem.prototype.goToAndStop = function (value, isFrame, name) {
   if (name && this.name !== name) {
@@ -489,6 +508,7 @@ AnimationItem.prototype.goToAndPlay = function (value, isFrame, name) {
   this.play();
 };
 
+/* FITRUE_INCLUDE_ADVANCED */
 AnimationItem.prototype.advanceTime = function (value) {
   if (this.isPaused === true || this.isLoaded === false) {
     return;
@@ -566,6 +586,7 @@ AnimationItem.prototype.adjustSegment = function (arr, offset) {
   }
   this.trigger('segmentStart');
 };
+
 AnimationItem.prototype.setSegment = function (init, end) {
   var pendingFrame = -1;
   if (this.isPaused) {
@@ -612,6 +633,7 @@ AnimationItem.prototype.resetSegments = function (forceFlag) {
     this.checkSegments(0);
   }
 };
+
 AnimationItem.prototype.checkSegments = function (offset) {
   if (this.segments.length) {
     this.adjustSegment(this.segments.shift(), offset);
@@ -644,6 +666,7 @@ AnimationItem.prototype.setCurrentRawFrameValue = function (value) {
   this.gotoFrame();
 };
 
+/* IFTRUE_INCLUDE_ADVANCED */
 AnimationItem.prototype.setSpeed = function (val) {
   this.playSpeed = val;
   this.updaFrameModifier();
@@ -657,7 +680,9 @@ AnimationItem.prototype.setDirection = function (val) {
 AnimationItem.prototype.setLoop = function (isLooping) {
   this.loop = isLooping;
 };
+/* FITRUE_INCLUDE_ADVANCED */
 
+/* IFTRUE_INCLUDE_AUDIO */
 AnimationItem.prototype.setVolume = function (val, name) {
   if (name && this.name !== name) {
     return;
@@ -682,10 +707,13 @@ AnimationItem.prototype.unmute = function (name) {
   }
   this.audioController.unmute();
 };
+/* FITRUE_INCLUDE_AUDIO */
 
 AnimationItem.prototype.updaFrameModifier = function () {
   this.frameModifier = this.frameMult * this.playSpeed * this.playDirection;
+  /* IFTRUE_INCLUDE_AUDIO */
   this.audioController.setRate(this.playSpeed * this.playDirection);
+  /* FITRUE_INCLUDE_AUDIO */
 };
 
 AnimationItem.prototype.getPath = function () {

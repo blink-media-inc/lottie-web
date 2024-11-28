@@ -12,9 +12,11 @@ import RenderableDOMElement from './helpers/RenderableDOMElement';
 
 function IImageElement(data, globalData, comp) {
   this.assetData = globalData.getAssetData(data.refId);
+  /* IFTRUE_INCLUDE_SLOTS */
   if (this.assetData && this.assetData.sid) {
     this.assetData = globalData.slotManager.getProp(this.assetData);
   }
+  /* FITRUE_INCLUDE_SLOTS */
   this.initElement(data, globalData, comp);
   this.sourceRect = {
     top: 0, left: 0, width: this.assetData.w, height: this.assetData.h,

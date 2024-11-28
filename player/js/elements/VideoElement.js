@@ -12,9 +12,11 @@ import RenderableDOMElement from './helpers/RenderableDOMElement';
 function IVideoElement(data, globalData, comp) {
   this.assetData = globalData.getAssetData(data.refId);
 
+  /* IFTRUE_INCLUDE_SLOTS */
   if (this.assetData && this.assetData.sid) {
     this.assetData = globalData.slotManager.getProp(this.assetData);
   }
+  /* FITRUE_INCLUDE_SLOTS */
 
   this.initElement(data, globalData, comp);
   this.sourceRect = {
@@ -29,10 +31,22 @@ extendPrototype([BaseElement, TransformElement, SVGBaseElement, HierarchyElement
 
 IVideoElement.prototype.createContent = function () {
   var assetPath = this.globalData.getAssetsPath(this.assetData);
-
-  this.layerElement.innerHTML = '<foreignObject x="0" y="0" width="' + this.assetData.w + '" height="' + this.assetData.h + '"><video xmlns="http://www.w3.org/1999/xhtml" width="' + this.assetData.w + '" height="' + this.assetData.h + '" loop="true" muted="true" src="' + assetPath + '"></video></foreignObject>';
-  this.videoElement = this.layerElement.children[0].children[0];
-  this.videoElement._videoDuration = -1;
+  var preloadedVideos = this.globalData.defs.getElementsByTagName('foreignObject');
+  this.videoElement = null;
+  for (var i = 0; i < preloadedVideos.length; i += 1) {
+    if (preloadedVideos[i].getAttribute('id') === this.assetData.id) {
+      this.videoElement = preloadedVideos[i].children[0];
+      this.layerElement.appendChild(preloadedVideos[i]);
+      break;
+    }
+  }
+  var alreadyCreated = true;
+  if (!this.videoElement) {
+    this.layerElement.innerHTML = '<foreignObject x="0" y="0" width="' + this.assetData.w + '" height="' + this.assetData.h + '"><video xmlns="http://www.w3.org/1999/xhtml" width="' + this.assetData.w + '" height="' + this.assetData.h + '" loop="true" muted="true" src="' + assetPath + '"></video></foreignObject>';
+    this.videoElement = this.layerElement.children[0].children[0];
+    this.videoElement._videoDuration = -1;
+    alreadyCreated = false;
+  }
   this.animationItem = null;
   var comp = this.comp;
   while (!comp.animationItem && comp.comp) {
@@ -47,28 +61,34 @@ IVideoElement.prototype.createContent = function () {
   };
   this.animationItemPlayListener = function () {
     if (self.videoElement.paused) {
+      self.videoElement.currentTime = (self.globalData.frameNum - self.data.ip) / self.globalData.frameRate;
       self.videoElement.play();
     }
   };
   this.animationItem.addEventListener('_pause', this.animationItemPauseListener);
   this.animationItem.addEventListener('_play', this.animationItemPlayListener);
-  this.videoElement.onloadedmetadata = function () {
-    this._videoDuration = this.duration;
-    if (!self.animationItem.isPaused) {
-      this.play();
+  if (alreadyCreated) {
+    if (!this.animationItem.isPaused) {
+      this.videoElement.currentTime = (this.globalData.frameNum - this.data.ip) / this.globalData.frameRate;
+      this.videoElement.play();
     }
-  };
-};
-
-IVideoElement.prototype.show = function () {
-  RenderableDOMElement.prototype.show.call(this);
-  this._videoStartFrame = this.globalData.frameNum;
+  } else {
+    this.videoElement.onloadedmetadata = function () {
+      this._videoDuration = this.duration;
+      if (!self.animationItem.isPaused) {
+        this.currentTime = (self.globalData.frameNum - self.data.ip) / self.globalData.frameRate;
+        this.play();
+      }
+    };
+  }
 };
 
 IVideoElement.prototype.prepareFrame = function (num) {
   RenderableDOMElement.prototype.prepareFrame.call(this, num);
   if (this.animationItem.isPaused && this.videoElement._videoDuration > -1) {
-    this.videoElement.currentTime = ((this.globalData.frameNum - this._videoStartFrame) / this.globalData.frameRate);
+    this.videoElement.currentTime = (this.globalData.frameNum - this.data.ip) / this.globalData.frameRate;
+  } else if (Math.abs((this.globalData.frameNum - this.data.ip) / this.globalData.frameRate - this.videoElement.currentTime) > 1) {
+    this.videoElement.currentTime = (this.globalData.frameNum - this.data.ip) / this.globalData.frameRate;
   }
 };
 

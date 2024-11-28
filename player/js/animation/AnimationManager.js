@@ -26,6 +26,7 @@ const animationManager = (function () {
     }
   }
 
+  /* IFTRUE_INCLUDE_ADVANCED */
   function registerAnimation(element, animationData) {
     if (!element) {
       return null;
@@ -52,6 +53,7 @@ const animationManager = (function () {
     }
     return animations;
   }
+  /* FITRUE_INCLUDE_ADVANCED */
 
   function addPlayingCount() {
     playingAnimationsNum += 1;
@@ -77,6 +79,7 @@ const animationManager = (function () {
     return animItem;
   }
 
+  /* IFTRUE_INCLUDE_ADVANCED */
   function setSpeed(val, animation) {
     var i;
     for (i = 0; i < len; i += 1) {
@@ -97,6 +100,8 @@ const animationManager = (function () {
       registeredAnimations[i].animation.play(animation);
     }
   }
+  /* FITRUE_INCLUDE_ADVANCED */
+
   function resume(nowTime) {
     var elapsedTime = nowTime - initTime;
     var i;
@@ -116,6 +121,7 @@ const animationManager = (function () {
     window.requestAnimationFrame(resume);
   }
 
+  /* IFTRUE_INCLUDE_ADVANCED */
   function pause(animation) {
     var i;
     for (i = 0; i < len; i += 1) {
@@ -143,6 +149,7 @@ const animationManager = (function () {
       registeredAnimations[i].animation.togglePause(animation);
     }
   }
+  /* FITRUE_INCLUDE_ADVANCED */
 
   function destroy(animation) {
     var i;
@@ -151,6 +158,7 @@ const animationManager = (function () {
     }
   }
 
+  /* IFTRUE_INCLUDE_ADVANCED */
   function searchAnimations(animationData, standalone, renderer) {
     var animElements = [].concat([].slice.call(document.getElementsByClassName('lottie')),
       [].slice.call(document.getElementsByClassName('bodymovin')));
@@ -183,6 +191,7 @@ const animationManager = (function () {
       registeredAnimations[i].animation.resize();
     }
   }
+  /* FITRUE_INCLUDE_ADVANCED */
 
   function activate() {
     if (!_isFrozen && playingAnimationsNum) {
@@ -202,6 +211,7 @@ const animationManager = (function () {
     activate();
   }
 
+  /* IFTRUE_INCLUDE_AUDIO */
   function setVolume(val, animation) {
     var i;
     for (i = 0; i < len; i += 1) {
@@ -222,9 +232,13 @@ const animationManager = (function () {
       registeredAnimations[i].animation.unmute(animation);
     }
   }
+  /* FITRUE_INCLUDE_AUDIO */
 
+  /* IFTRUE_INCLUDE_ADVANCED */
   moduleOb.registerAnimation = registerAnimation;
+  /* FITRUE_INCLUDE_ADVANCED */
   moduleOb.loadAnimation = loadAnimation;
+  /* IFTRUE_INCLUDE_ADVANCED */
   moduleOb.setSpeed = setSpeed;
   moduleOb.setDirection = setDirection;
   moduleOb.play = play;
@@ -235,13 +249,18 @@ const animationManager = (function () {
   moduleOb.resize = resize;
   // moduleOb.start = start;
   moduleOb.goToAndStop = goToAndStop;
+  /* FITRUE_INCLUDE_ADVANCED */
   moduleOb.destroy = destroy;
   moduleOb.freeze = freeze;
   moduleOb.unfreeze = unfreeze;
+  /* IFTRUE_INCLUDE_AUDIO */
   moduleOb.setVolume = setVolume;
   moduleOb.mute = mute;
   moduleOb.unmute = unmute;
+  /* FITRUE_INCLUDE_AUDIO */
+  /* IFTRUE_INCLUDE_ADVANCED */
   moduleOb.getRegisteredAnimations = getRegisteredAnimations;
+  /* FITRUE_INCLUDE_ADVANCED */
   return moduleOb;
 }());
 

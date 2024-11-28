@@ -11,9 +11,11 @@ function TextProperty(elem, data) {
   this.kf = false;
   this._isFirstFrame = true;
   this._mdf = false;
+  /* IFTRUE_INCLUDE_SLOTS */
   if (data.d && data.d.sid) {
     data.d = elem.globalData.slotManager.getProp(data.d);
   }
+  /* FITRUE_INCLUDE_SLOTS */
   this.data = data;
   this.elem = elem;
   this.comp = this.elem.comp;
