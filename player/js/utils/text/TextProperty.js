@@ -13,7 +13,13 @@ function TextProperty(elem, data) {
   this._mdf = false;
   /* IFTRUE_INCLUDE_SLOTS */
   if (data.d && data.d.sid) {
-    data.d = elem.globalData.slotManager.getProp(data.d);
+    const oldt = JSON.stringify(data.d);
+    const newdata = elem.globalData.slotManager.getProp(data.d);
+    data.d = JSON.parse(oldt);
+    // only applies font family from slot
+    if (data.d.k[0] && data.d.k[0].s && data.d.k[0].s.f && newdata.k[0] && newdata.k[0].s && newdata.k[0].s.f) {
+      data.d.k[0].s.f = newdata.k[0].s.f;
+    }
   }
   /* FITRUE_INCLUDE_SLOTS */
   this.data = data;
