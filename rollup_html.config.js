@@ -251,7 +251,10 @@ const plugins = [
   				"skew",
   				"skewAxis",
   				"props",
-  				"cix"
+  				"cix",
+  				"roundness",
+  				"position",
+  				"size"
   			]
   		}
   	},

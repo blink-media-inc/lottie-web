@@ -7893,7 +7893,9 @@
     this.innerElem.setAttribute('width', this.assetData.w + 'px');
     this.innerElem.setAttribute('height', this.assetData.h + 'px');
     this.innerElem.setAttribute('preserveAspectRatio', this.assetData.pr || this.globalData.renderConfig.imagePreserveAspectRatio);
-    this.innerElem.setAttribute('transform', this.assetData.tr);
+    if (this.assetData.tr) {
+      this.innerElem.setAttribute('transform', this.assetData.tr);
+    }
     this.innerElem.setAttributeNS('http://www.w3.org/1999/xlink', 'href', assetPath);
     this.layerElement.appendChild(this.innerElem);
   };
