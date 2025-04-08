@@ -10607,7 +10607,7 @@
     }
     var alreadyCreated = true;
     if (!this.videoElement) {
-      this.layerElement.innerHTML = '<foreignObject x="0" y="0" width="' + this.assetData.w + '" height="' + this.assetData.h + '"><video xmlns="http://www.w3.org/1999/xhtml" width="' + this.assetData.w + '" height="' + this.assetData.h + '" loop="true" muted="true" src="' + assetPath + '"></video></foreignObject>';
+      this.layerElement.innerHTML = '<foreignObject id="' + this.assetData.id + '" x="0" y="0" width="' + this.assetData.w + '" height="' + this.assetData.h + '"><video xmlns="http://www.w3.org/1999/xhtml" width="' + this.assetData.w + '" height="' + this.assetData.h + '" loop="true" muted="true" src="' + assetPath + '"></video></foreignObject>';
       this.videoElement = this.layerElement.children[0].children[0];
       this.videoElement._videoDuration = -1;
       alreadyCreated = false;
